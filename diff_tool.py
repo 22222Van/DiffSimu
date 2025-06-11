@@ -1,13 +1,16 @@
 from typing import Optional, Union, Sequence
 import numpy as np
 
+from numpy.typing import NDArray
 
-def diff_2D(f: np.ndarray,
-            A: np.ndarray,
-            C: np.ndarray,
-            theta: np.ndarray,
-            is_rad: bool,
-            fixed: Optional[Union[np.ndarray, Sequence[int]]] = None)-> np.ndarray:
+def diff_2D(
+    f: NDArray[np.floating],
+    A: NDArray[np.floating],
+    C: NDArray[np.floating],
+    theta: NDArray[np.floating],
+    is_rad: bool,
+    fixed: Optional[Union[NDArray[np.floating], Sequence[int]]] = None
+) -> NDArray[np.floating]:
     """
     Solve 2D Truss Problem (A'CAu = f)
 
@@ -25,60 +28,60 @@ def diff_2D(f: np.ndarray,
     return:
         u : (2*m,1), displacement decomposed into horizontal displacement and vertical displacement , e.g. u_1^H, u_2^V
     """
-    try:
-        m = A.shape[1]
-        n = A.shape[0]
+    m = A.shape[1]
+    n = A.shape[0]
 
-        # Convert degree to rad.
-        if not is_rad:
-            theta_rad = np.deg2rad(theta)
-        else:
-            theta_rad = theta
+    # Convert degree to rad.
+    if not is_rad:
+        theta_rad = np.deg2rad(theta)
+    else:
+        theta_rad = theta
 
-        # Direction cosines for each truss
-        c = np.cos(theta_rad)
-        s = np.sin(theta_rad)
+    # Direction cosines for each truss
+    c = np.cos(theta_rad)
+    s = np.sin(theta_rad)
 
-        A_2d = np.zeros((n, 2 * m))
+    A_2d = np.zeros((n, 2 * m))
 
-        for i in range(n):
-            start_node = np.argmax(A[i] == 1)
-            end_node = np.argmax(A[i] == -1)
+    for i in range(n):
+        start_node = np.argmax(A[i] == 1)
+        end_node = np.argmax(A[i] == -1)
 
-            A_2d[i, 2*start_node] = c[i]
-            A_2d[i, 2*start_node + 1] = s[i]
+        A_2d[i, 2*start_node] = c[i]
+        A_2d[i, 2*start_node + 1] = s[i]
 
-            A_2d[i, 2*end_node] = -c[i]
-            A_2d[i, 2*end_node + 1] = -s[i]
+        A_2d[i, 2*end_node] = -c[i]
+        A_2d[i, 2*end_node + 1] = -s[i]
 
-        # Stiffness Matrix
-        K = A_2d.T @ C @ A_2d
+    # Stiffness Matrix
+    K = A_2d.T @ C @ A_2d
 
-        if fixed is None:
-            fixed = []  # Singular!
+    if fixed is None:
+        fixed = []  # Singular!
 
-        active = [i for i in range(2 * m) if i not in fixed]
+    active = [i for i in range(2 * m) if i not in fixed]
 
-        K_reduced = K[active, :][:, active]
-        f_reduced = f[active]
+    K_reduced = K[active, :][:, active]
+    f_reduced = f[active]
 
-        u_reduced = np.linalg.solve(K_reduced, f_reduced)
+    u_reduced = np.linalg.solve(K_reduced, f_reduced)
 
-        u = np.zeros(2 * m)
-        u[active] = u_reduced
+    u = np.zeros(2 * m)
+    u[active] = u_reduced
 
-        return u
-    except Exception as e:
-        print(f"[Error]:{e}")
-        return None
-    
-def diff_3D(f: np.ndarray,
-            A: np.ndarray,
-            C: np.ndarray,
-            theta_xy: np.ndarray,
-            theta_xz: np.ndarray,
-            is_rad: bool,
-            fixed: Optional[Union[np.ndarray, Sequence[int]]] = None) -> np.ndarray:
+    return u
+
+
+
+def diff_3D(
+    f: NDArray[np.floating],
+    A: NDArray[np.floating],
+    C: NDArray[np.floating],
+    theta_xy: NDArray[np.floating],
+    theta_xz: NDArray[np.floating],
+    is_rad: bool,
+    fixed: Optional[Union[NDArray[np.floating], Sequence[int]]] = None
+) -> NDArray[np.floating]:
     """
     Solve 3D Truss Problem (A'CAu = f)
 
@@ -97,67 +100,63 @@ def diff_3D(f: np.ndarray,
     return:
         u: (3*m,1), displacement decomposed into x, y, z components (u_1^x, u_1^y, u_1^z, ...)
     """
-    try:
-        m = A.shape[1]
-        n = A.shape[0]
+    m = A.shape[1]
+    n = A.shape[0]
 
-        # Convert degree to rad if needed
-        if not is_rad:
-            theta_xy_rad = np.deg2rad(theta_xy)
-            theta_xz_rad = np.deg2rad(theta_xz)
-        else:
-            theta_xy_rad = theta_xy
-            theta_xz_rad = theta_xz
+    # Convert degree to rad if needed
+    if not is_rad:
+        theta_xy_rad = np.deg2rad(theta_xy)
+        theta_xz_rad = np.deg2rad(theta_xz)
+    else:
+        theta_xy_rad = theta_xy
+        theta_xz_rad = theta_xz
 
-        # Direction cosines for each truss
-        c_xy = np.cos(theta_xy_rad)
-        s_xy = np.sin(theta_xy_rad)
-        c_xz = np.cos(theta_xz_rad)
-        s_xz = np.sin(theta_xz_rad)
-        
-        # Calculate direction components (x,y,z)
-        cx = s_xy * c_xz  # x component
-        cy = s_xy * s_xz  # y component
-        cz = c_xy         # z component
+    # Direction cosines for each truss
+    c_xy = np.cos(theta_xy_rad)
+    s_xy = np.sin(theta_xy_rad)
+    c_xz = np.cos(theta_xz_rad)
+    s_xz = np.sin(theta_xz_rad)
 
-        A_3d = np.zeros((n, 3 * m))
+    # Calculate direction components (x,y,z)
+    cx = s_xy * c_xz  # x component
+    cy = s_xy * s_xz  # y component
+    cz = c_xy         # z component
 
-        for i in range(n):
-            start_node = np.argmax(A[i] == 1)
-            end_node = np.argmax(A[i] == -1)
+    A_3d = np.zeros((n, 3 * m))
 
-            # Start node components
-            A_3d[i, 3*start_node] = cx[i]
-            A_3d[i, 3*start_node + 1] = cy[i]
-            A_3d[i, 3*start_node + 2] = cz[i]
+    for i in range(n):
+        start_node = np.argmax(A[i] == 1)
+        end_node = np.argmax(A[i] == -1)
 
-            # End node components
-            A_3d[i, 3*end_node] = -cx[i]
-            A_3d[i, 3*end_node + 1] = -cy[i]
-            A_3d[i, 3*end_node + 2] = -cz[i]
+        # Start node components
+        A_3d[i, 3*start_node] = cx[i]
+        A_3d[i, 3*start_node + 1] = cy[i]
+        A_3d[i, 3*start_node + 2] = cz[i]
 
-        # Stiffness Matrix
-        K = A_3d.T @ C @ A_3d
+        # End node components
+        A_3d[i, 3*end_node] = -cx[i]
+        A_3d[i, 3*end_node + 1] = -cy[i]
+        A_3d[i, 3*end_node + 2] = -cz[i]
 
-        if fixed is None:
-            fixed = []  # Singular matrix
-        
-        # Convert node indices to degree of freedom indices
-        fixed_dofs = []
-        for node in fixed:
-            fixed_dofs.extend([3*node, 3*node+1, 3*node+2])
-            
-        active = [i for i in range(3 * m) if i not in fixed_dofs]
+    # Stiffness Matrix
+    K = A_3d.T @ C @ A_3d
 
-        K_reduced = K[active, :][:, active]
-        f_reduced = f[active]
+    if fixed is None:
+        fixed = []  # Singular matrix
 
-        u_reduced = np.linalg.solve(K_reduced, f_reduced)
+    # Convert node indices to degree of freedom indices
+    fixed_dofs = []
+    for node in fixed:
+        fixed_dofs.extend([3*node, 3*node+1, 3*node+2])
 
-        u = np.zeros(3 * m)
-        u[active] = u_reduced
+    active = [i for i in range(3 * m) if i not in fixed_dofs]
 
-        return u
-    except Exception as e:
-        print(f"[Error]: {e}")
-        return None
+    K_reduced = K[active, :][:, active]
+    f_reduced = f[active]
+
+    u_reduced = np.linalg.solve(K_reduced, f_reduced)
+
+    u = np.zeros(3 * m)
+    u[active] = u_reduced
+
+    return u
