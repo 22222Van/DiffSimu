@@ -113,7 +113,7 @@ def visualize_truss(
     edges,
     forces,
     fixed,
-    force_scale=0.1,
+    force_scale=1,
     color_orig='gray',
     color_def='blue',
     color_force='red',
