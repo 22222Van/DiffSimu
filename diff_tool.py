@@ -108,17 +108,22 @@ def diff_solve(
 
 
 def visualize_truss(
-    coords,
-    displacement,
-    edges,
-    forces,
-    fixed,
+    coords: ArrayLike,
+    displacement: ArrayLike,
+    edges: ArrayLike,
+    forces: ArrayLike,
+    fixed: Optional[Sequence[int]],
     force_scale=1,
     color_orig='gray',
     color_def='blue',
     color_force='red',
     color_fixed='black'
 ):
+    coords = np.array(coords)
+    displacement = np.array(displacement)
+    edges = np.array(edges)
+    forces = np.array(forces)
+
     new_coords = coords + displacement
     dim = coords.shape[1]
     if dim == 2:
@@ -210,6 +215,19 @@ def visualize_truss(
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+
+        # 保持等比例缩放
+        all_coords = np.vstack((coords, new_coords))
+        max_range = (
+            all_coords.max(axis=0) - all_coords.min(axis=0)
+        ).max() / 2.0
+        mid_x = (all_coords[:, 0].max() + all_coords[:, 0].min()) / 2.0
+        mid_y = (all_coords[:, 1].max() + all_coords[:, 1].min()) / 2.0
+        mid_z = (all_coords[:, 2].max() + all_coords[:, 2].min()) / 2.0
+        ax.set_xlim(mid_x - max_range, mid_x + max_range)
+        ax.set_ylim(mid_y - max_range, mid_y + max_range)
+        ax.set_zlim(mid_z - max_range, mid_z + max_range)
+
         plt.show()
 
     else:
