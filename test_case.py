@@ -1,6 +1,6 @@
 # coding:utf-8
 
-from diff_tool import diff_solve
+from diff_tool import diff_solve, visualize_truss
 import numpy as np
 
 if __name__ == "__main__":
@@ -18,14 +18,13 @@ if __name__ == "__main__":
     f_2d = np.array([
         [0, 0],
         [0, 0],
-        [0, -100]
+        [0, -1]
     ])
 
     fixed = [0, 1]
 
     u_2d = diff_solve(f_2d, A_2d, C_2d, coords_2d, fixed)
-
-    print("Displacement:", u_2d)
+    visualize_truss(coords_2d, u_2d, A_2d, f_2d, fixed)
 
     # 3D示例
     coords_3d = np.array([
@@ -47,9 +46,9 @@ if __name__ == "__main__":
         [0, 0, 0],
         [0, 0, 0],
         [0, 0, 0],
-        [0, 0, -100]
+        [0, 0, -1]
     ])  # 节点3处施加-z方向力
     fixed = [0, 1, 2]
 
     u_3d = diff_solve(f_3d, A_3d, C_3d, coords_3d, fixed)
-    print("Displacement:", u_3d)
+    visualize_truss(coords_3d, u_3d, A_3d, f_3d, fixed)
